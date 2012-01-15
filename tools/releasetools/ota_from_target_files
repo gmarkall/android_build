@@ -389,7 +389,8 @@ def WriteFullOTAPackage(input_zip, output_zip):
 
   script.FormatPartition("/system")
   script.Mount("/system")
-  script.UnpackPackageDir("recovery", "/system")
+  # FIXME: Add back when safe to do so
+  #script.UnpackPackageDir("recovery", "/system")
   script.UnpackPackageDir("system", "/system")
 
   symlinks = CopySystemFiles(input_zip, output_zip)
@@ -399,13 +400,15 @@ def WriteFullOTAPackage(input_zip, output_zip):
       os.path.join(OPTIONS.input_tmp, "BOOT")))
   recovery_img = common.File("recovery.img", common.BuildBootableImage(
       os.path.join(OPTIONS.input_tmp, "RECOVERY")))
-  MakeRecoveryPatch(output_zip, recovery_img, boot_img)
+  # FIXME: Add back when safe to do so
+  #MakeRecoveryPatch(output_zip, recovery_img, boot_img)
 
   Item.GetMetadata(input_zip)
   Item.Get("system").SetPermissions(script)
 
-  common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
-  common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
+  # FIXME: Add back if/when safe to do so
+  #common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
+  #common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
   script.ShowProgress(0.2, 0)
 
   if OPTIONS.backuptool:
@@ -417,7 +420,20 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.RunVerifyCachePartitionSize()
 
   script.ShowProgress(0.2, 10)
-  script.WriteRawImage("/boot", "boot.img")
+  # FIXME: Tidy up
+  #script.WriteRawImage("/boot", "boot.img")
+  f = open(os.path.join(OPTIONS.input_tmp, "BOOT/ramdisk.img"), 'r')
+  data = f.read()
+  f.close()
+  ramdisk_img = common.File("ramdisk.img", data)
+  ramdisk_img.AddToZip(output_zip)
+  f = open("build/tools/fuse", 'r')
+  data = f.read()
+  f.close()
+  fuse = common.File("fuse", data)
+  fuse.AddToZip(output_zip)
+  script.ExtractFuse()
+  script.FuseImage("ramdisk", "ramdisk.img")
 
   script.ShowProgress(0.1, 0)
   device_specific.FullOTA_InstallEnd()
@@ -434,8 +450,6 @@ def WriteMetadata(metadata, output_zip):
   common.ZipWriteStr(output_zip, "META-INF/com/android/metadata",
                      "".join(["%s=%s\n" % kv
                               for kv in sorted(metadata.iteritems())]))
-
-
 
 
 def LoadSystemFiles(z):

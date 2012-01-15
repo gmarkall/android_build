@@ -216,6 +216,14 @@ class EdifyGenerator(object):
       self.script.append(
           'write_firmware_image("PACKAGE:%s", "%s");' % (fn, kind))
 
+  def ExtractFuse(self):
+    self.script.append('assert(package_extract_file("fuse", "/tmp/fuse"));')
+    self.script.append('set_perm(0, 0, 0777, "/tmp/fuse");')
+
+  def FuseImage(self, partition, image):
+    self.script.append('assert(package_extract_file("%s", "/tmp/%s"));' % (image, image))
+    self.script.append('assert(run_program("/tmp/fuse", "%s", "/tmp/%s"));' % (partition, image))
+
   def WriteRawImage(self, mount_point, fn):
     """Write the given package file into the partition for the given
     mount point."""
