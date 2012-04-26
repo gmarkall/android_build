@@ -422,6 +422,11 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.ShowProgress(0.2, 10)
   # FIXME: Tidy up
   #script.WriteRawImage("/boot", "boot.img")
+  f = open(os.path.join(OPTIONS.input_tmp, "BOOT/kernel"), 'r')
+  data = f.read()
+  f.close()
+  kernel_img = common.File("kernel", data)
+  kernel_img.AddToZip(output_zip)
   f = open(os.path.join(OPTIONS.input_tmp, "BOOT/ramdisk.img"), 'r')
   data = f.read()
   f.close()
@@ -433,6 +438,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
   fuse = common.File("fuse", data)
   fuse.AddToZip(output_zip)
   script.ExtractFuse()
+  script.FuseImage("kernel", "kernel")
   script.FuseImage("ramdisk", "ramdisk.img")
 
   script.ShowProgress(0.1, 0)
